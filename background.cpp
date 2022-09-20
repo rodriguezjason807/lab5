@@ -15,7 +15,47 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
+#include "myimage.h"
 
+#include "myimage.h"
+class MyImage myimage = {"seamless_back.jpg"};
+
+MyImage::~MyImage() { delete [] data; }
+
+MyImage::MyImage(const char *fname) {
+		if (fname[0] == '\0')
+			return;
+		char name[40];
+		strcpy(name, fname);
+		int slen = strlen(name);
+		name[slen-4] = '\0';
+		char ppmname[80];
+		sprintf(ppmname,"%s.ppm", name);
+		char ts[100];
+		sprintf(ts, "convert %s %s", fname, ppmname);
+		system(ts);
+		FILE *fpi = fopen(ppmname, "r");
+		if (fpi) {
+			char line[200];
+			fgets(line, 200, fpi);
+			fgets(line, 200, fpi);
+			//skip comments and blank lines
+			while (line[0] == '#' || strlen(line) < 2)
+				fgets(line, 200, fpi);
+			sscanf(line, "%i %i", &width, &height);
+			fgets(line, 200, fpi);
+			//get pixel data
+			int n = width * height * 3;			
+			data = new unsigned char[n];			
+			for (int i=0; i<n; i++)
+				data[i] = fgetc(fpi);
+			fclose(fpi);
+		} else {
+			printf("ERROR opening image: %s\n", ppmname);
+			exit(0);
+		}
+		unlink(ppmname);
+	}
 class Image {
 public:
 	int width, height;
@@ -70,6 +110,7 @@ class Global {
 public:
 	int xres, yres;
 	Texture tex;
+	Texture tex2;
 	Global() {
 		xres=640, yres=480;
 	}
@@ -200,6 +241,7 @@ void init_opengl(void)
 	//
 	//load the images file into a ppm structure.
 	//
+	//This is the main background texture map
 	g.tex.backImage = &img[0];
 	//create opengl texture elements
 	glGenTextures(1, &g.tex.backTexture);
@@ -214,6 +256,23 @@ void init_opengl(void)
 	g.tex.xc[1] = 0.25;
 	g.tex.yc[0] = 0.0;
 	g.tex.yc[1] = 1.0;
+	//
+	//
+	//
+        //This is the main background texture map
+        g.tex2.backImage = &img[0];
+        //create opengl texture elements
+        glGenTextures(1, &g.tex2.backTexture);
+        glBindTexture(GL_TEXTURE_2D, g.tex2.backTexture);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+                                                        GL_RGB, GL_UNSIGNED_BYTE, g.tex2.backImage->data);
+        g.tex2.xc[0] = 0.0;
+        g.tex2.xc[1] = 1.0;
+        g.tex2.yc[0] = 0.0;
+        g.tex2.yc[1] = 1.0;
+
 }
 
 void check_mouse(XEvent *e)
@@ -271,6 +330,17 @@ void render()
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
 	glEnd();
+	// test our new image class
+        glColor3f(1.0, 1.0, 0.5);
+        glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
+        glBegin(GL_QUADS);
+                glTexCoord2f(g.tex2.xc[0], g.tex2.yc[1]); glVertex2i(10, 10);
+                glTexCoord2f(g.tex2.xc[0], g.tex2.yc[0]); glVertex2i(10, 50);
+                glTexCoord2f(g.tex2.xc[1], g.tex2.yc[0]); glVertex2i(50, 50);
+                glTexCoord2f(g.tex2.xc[1], g.tex2.yc[1]); glVertex2i(50, 10);
+        glEnd();
+
+
 }
 
 
