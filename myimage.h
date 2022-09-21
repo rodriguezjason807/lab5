@@ -1,3 +1,7 @@
+//Author: Jason Rodriguez
+//Date:   Sep 21 2022
+//Header file for myimage.cpp and background.cpp
+
 #ifndef MYIMAGE_H_
 #define MYIMAGE_H_
 

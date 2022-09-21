@@ -1,3 +1,5 @@
+//edit date: Sep 20 2022
+//edit by:   Jason Rodriguez
 //
 //program: background.cpp
 //author:  Gordon Griesel
@@ -6,6 +8,8 @@
 //The position of the background QUAD does not change.
 //Just the texture coordinates change.
 //In this example, only the x coordinates change.
+//
+//Sep 2022 changed Image class to MyImage class with header and source
 //
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,87 +24,11 @@
 #include "myimage.h"
 class MyImage myimage = {"seamless_back.jpg"};
 
-MyImage::~MyImage() { delete [] data; }
-
-MyImage::MyImage(const char *fname) {
-		if (fname[0] == '\0')
-			return;
-		char name[40];
-		strcpy(name, fname);
-		int slen = strlen(name);
-		name[slen-4] = '\0';
-		char ppmname[80];
-		sprintf(ppmname,"%s.ppm", name);
-		char ts[100];
-		sprintf(ts, "convert %s %s", fname, ppmname);
-		system(ts);
-		FILE *fpi = fopen(ppmname, "r");
-		if (fpi) {
-			char line[200];
-			fgets(line, 200, fpi);
-			fgets(line, 200, fpi);
-			//skip comments and blank lines
-			while (line[0] == '#' || strlen(line) < 2)
-				fgets(line, 200, fpi);
-			sscanf(line, "%i %i", &width, &height);
-			fgets(line, 200, fpi);
-			//get pixel data
-			int n = width * height * 3;			
-			data = new unsigned char[n];			
-			for (int i=0; i<n; i++)
-				data[i] = fgetc(fpi);
-			fclose(fpi);
-		} else {
-			printf("ERROR opening image: %s\n", ppmname);
-			exit(0);
-		}
-		unlink(ppmname);
-	}
-class Image {
-public:
-	int width, height;
-	unsigned char *data;
-	~Image() { delete [] data; }
-	Image(const char *fname) {
-		if (fname[0] == '\0')
-			return;
-		char name[40];
-		strcpy(name, fname);
-		int slen = strlen(name);
-		name[slen-4] = '\0';
-		char ppmname[80];
-		sprintf(ppmname,"%s.ppm", name);
-		char ts[100];
-		sprintf(ts, "convert %s %s", fname, ppmname);
-		system(ts);
-		FILE *fpi = fopen(ppmname, "r");
-		if (fpi) {
-			char line[200];
-			fgets(line, 200, fpi);
-			fgets(line, 200, fpi);
-			//skip comments and blank lines
-			while (line[0] == '#' || strlen(line) < 2)
-				fgets(line, 200, fpi);
-			sscanf(line, "%i %i", &width, &height);
-			fgets(line, 200, fpi);
-			//get pixel data
-			int n = width * height * 3;			
-			data = new unsigned char[n];			
-			for (int i=0; i<n; i++)
-				data[i] = fgetc(fpi);
-			fclose(fpi);
-		} else {
-			printf("ERROR opening image: %s\n", ppmname);
-			exit(0);
-		}
-		unlink(ppmname);
-	}
-};
-Image img[1] = {"seamless_back.jpg"};
+MyImage img[1] = {"seamless_back.jpg"};
 
 class Texture {
 public:
-	Image *backImage;
+	MyImage *backImage;
 	GLuint backTexture;
 	float xc[2];
 	float yc[2];
@@ -334,10 +262,10 @@ void render()
         glColor3f(1.0, 1.0, 0.5);
         glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
         glBegin(GL_QUADS);
-                glTexCoord2f(g.tex2.xc[0], g.tex2.yc[1]); glVertex2i(10, 10);
-                glTexCoord2f(g.tex2.xc[0], g.tex2.yc[0]); glVertex2i(10, 50);
-                glTexCoord2f(g.tex2.xc[1], g.tex2.yc[0]); glVertex2i(50, 50);
-                glTexCoord2f(g.tex2.xc[1], g.tex2.yc[1]); glVertex2i(50, 10);
+                glTexCoord2f(g.tex2.xc[0], g.tex2.yc[1]); glVertex2i(10 , 10);
+                glTexCoord2f(g.tex2.xc[0], g.tex2.yc[0]); glVertex2i(10 , 150);
+                glTexCoord2f(g.tex2.xc[1], g.tex2.yc[0]); glVertex2i(150, 150);
+                glTexCoord2f(g.tex2.xc[1], g.tex2.yc[1]); glVertex2i(150, 10);
         glEnd();
 
 

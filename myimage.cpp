@@ -1,14 +1,23 @@
-//Source file for MyImage.h
+//Author: Jason Rodriguez
+//Date:   Sep 21 2022
+//Source file for myimage.h class definition
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <cstring>
+#include "myimage.h"
+
 extern class MyImage myimage;
 
 MyImage::~MyImage() { delete [] data; }
 
-MyImage::MyImage() { }
-
 MyImage::MyImage(const char *fname) {
-		if (fname[0] == '\0')
+//		if (fname[0] == '\0')
+		if (fname[0] == 0)
 			return;
 		char name[40];
+//		char name[FILENAME_MAX];
 		strcpy(name, fname);
 		int slen = strlen(name);
 		name[slen-4] = '\0';
